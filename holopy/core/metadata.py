@@ -31,7 +31,9 @@ from .math import to_spherical, to_cartesian
 
 vector = 'vector'
 
-def data_grid(arr, spacing=None, medium_index=None, illum_wavelen=None, illum_polarization=None, normals=None, name=None, z=0):
+
+def data_grid(arr, spacing=None, medium_index=None, illum_wavelen=None,
+              illum_polarization=None, normals=None, name=None, z=0):
     """
     Create a set of detector points along with other experimental metadata.
 
@@ -41,24 +43,28 @@ def data_grid(arr, spacing=None, medium_index=None, illum_wavelen=None, illum_po
 
     Notes
     -----
-    Use of higher-level detector_grid() and detector_points() functions is 
+    Use of higher-level detector_grid() and detector_points() functions is
     recommended.
     """
-    
+
     if spacing is None:
         spacing = 1
-        warn("No pixel spacing provided. Setting spacing to 1, but any subsequent calculations will be wrong.")
+        warn("No pixel spacing provided. Setting spacing to 1, but any " +
+             "subsequent calculations will be wrong.")
     if name is None:
         name = 'data'
 
     if np.isscalar(spacing):
         spacing = np.repeat(spacing, 2)
-    if arr.ndim==2:
-        arr=np.array([arr])
-    out = xr.DataArray(arr, dims=['z','x', 'y'], coords=make_coords(arr.shape, spacing, z), name=name)
-    return update_metadata(out, medium_index, illum_wavelen, illum_polarization, normals)
+    if arr.ndim == 2:
+        arr = np.array([arr])
+    out = xr.DataArray(arr, dims=['z', 'x', 'y'], coords=make_coords(arr.shape,
+                       spacing, z), name=name)
+    return update_metadata(out, medium_index, illum_wavelen,
+                           illum_polarization, normals)
 
-def detector_grid(shape, spacing, normals = None, name = None):
+
+def detector_grid(shape, spacing, normals=None, name=None):
     """
     Create a rectangular grid of pixels to represent a detector on which
     scattering calculations are to be performed.
@@ -66,12 +72,13 @@ def detector_grid(shape, spacing, normals = None, name = None):
     Parameters
     ----------
     shape : int or list-like (2)
-        If int, detector is a square grid of shape x shape points. 
-        If array_like, detector has \ *shape*\ [0] rows and \ *shape*\ [1] columns.
+        If int, detector is a square grid of shape x shape points.
+        If array_like, detector has \ *shape*\ [0] rows and \ *shape*\ [1]
+        columns.
     spacing : int or list-like (2)
         If int, distance between square detector pixels.
-        If array_like, \ *spacing*\ [0] between adjacent rows and \ *spacing*\ [1] 
-        between adjacent columns.
+        If array_like, \ *spacing*\ [0] between adjacent rows and
+        \ *spacing*\ [1] between adjacent columns.
     normals : list-like or None
         If list-like, detector orientation.
     name : string
@@ -84,32 +91,35 @@ def detector_grid(shape, spacing, normals = None, name = None):
 
     Notes
     -----
-    Typically used to define a set of points to represent the pixels of a 
+    Typically used to define a set of points to represent the pixels of a
     digital camera in scattering calculations.
-        
+
     """
     if np.isscalar(shape):
         shape = np.repeat(shape, 2)
 
     d = np.zeros(shape)
-    return data_grid(d, spacing, normals = normals, name = name)
+    return data_grid(d, spacing, normals=normals, name=name)
 
-def detector_points(coords = {}, x = None, y = None, z = None, r = None, theta = None, phi = None, normals = 'auto', name = None):
+
+def detector_points(coords={}, x=None, y=None, z=None, r=None, theta=None,
+                    phi=None, normals='auto', name=None):
     """
-    Returns a one-dimensional set of detector coordinates at which scattering 
-    calculations are to be done.
+    Returns a one-dimensional set of detector coordinates at which
+    scattering calculations are to be done.
 
     Parameters
     ----------
     coords : dict, optional
         Dictionary of detector coordinates. Default: empty dictionary.
-        Typical usage should not pass this argument, giving other parameters
-        (Cartesian `x`, `y`, and `z` or polar `r`, `theta`, and `phi` 
-        coordinates) instead.
+        Typical usage should not pass this argument, giving other
+        parameters (Cartesian `x`, `y`, and `z` or polar `r`, `theta`,
+        and `phi` coordinates) instead.
     x, y : int or array_like, optional
         Cartesian x and y coordinates of detectors.
     z : int or array_like, optional
-        Cartesian z coordinates of detectors. If not specified, assume `z` = 0.
+        Cartesian z coordinates of detectors. If not specified, assume
+        `z` = 0.
     r : int or array_like, optional
         Spherical polar radial coordinates of detectors. If not specified,
         assume `r` = infinity (far-field).
@@ -118,9 +128,9 @@ def detector_points(coords = {}, x = None, y = None, z = None, r = None, theta =
     phi : int or array_like, optional
         Spherical polar azimuthal coodinates of detectors.
     normals : string, optional
-        Default behavior: normal in +z direction for Cartesian coordinates,
-        -r direction for polar coordinates. Non-default behavior not currently
-        implemented.
+        Default behavior: normal in +z direction for Cartesian
+        coordinates, -r direction for polar coordinates. Non-default
+        behavior not currently implemented.
     name : string
 
     Returns
@@ -130,9 +140,9 @@ def detector_points(coords = {}, x = None, y = None, z = None, r = None, theta =
 
     Notes
     -----
-    Specify either the Cartesian or the polar coordinates of your detector. 
+    Specify either the Cartesian or the polar coordinates of your detector.
     This may be helpful for modeling static light scattering calculations.
-    Use detector_grid() to specify coordinates of a grid of pixels (e.g., 
+    Use detector_grid() to specify coordinates of a grid of pixels (e.g.,
     a digital camera.)
 
     """
@@ -140,12 +150,12 @@ def detector_points(coords = {}, x = None, y = None, z = None, r = None, theta =
     coords = updated(coords, updatelist)
     if 'x' in coords and 'y' in coords:
         keys = ['x', 'y', 'z']
-        if not 'z' in coords or is_none(coords['z']):
+        if 'z' not in coords or is_none(coords['z']):
             coords['z'] = 0
-        
+
     elif 'theta' in coords and 'phi' in coords:
         keys = ['r', 'theta', 'phi']
-        if not 'r' in coords or is_none(coords['r']):
+        if 'r' not in coords or is_none(coords['r']):
             coords['r'] = np.inf
     else:
         raise CoordSysError()
@@ -153,12 +163,15 @@ def detector_points(coords = {}, x = None, y = None, z = None, r = None, theta =
     if name is None:
         name = 'data'
 
-    coords = repeat_sing_dims(coords,keys)
-    coords = updated(coords,{key: ('point', coords[key]) for key in keys})
+    coords = repeat_sing_dims(coords, keys)
+    coords = updated(coords, {key: ('point', coords[key]) for key in keys})
     attrs = {'normals': default_norms(coords, normals)}
-    return xr.DataArray(np.zeros(len(coords[keys[0]][1])), dims = ['point'], coords = coords, attrs = attrs, name = name)
+    return xr.DataArray(np.zeros(len(coords[keys[0]][1])), dims=['point'],
+                        coords=coords, attrs=attrs, name=name)
 
-def update_metadata(a, medium_index=None, illum_wavelen=None, illum_polarization=None, normals=None):
+
+def update_metadata(a, medium_index=None, illum_wavelen=None,
+                    illum_polarization=None, normals=None):
     """Returns a copy of an image with updated metadata in its 'attrs' field.
 
     Parameters
@@ -173,14 +186,17 @@ def update_metadata(a, medium_index=None, illum_wavelen=None, illum_polarization
         Updated polarization of illumination in the image.
     normals : list-like
         Updated detector orientation of the image.
-   
+
     Returns
     -------
     b : xarray.DataArray
-        copy of input image with updated metadata. The 'normals' field is not allowed to be empty.
+        copy of input image with updated metadata. The 'normals' field
+        is not allowed to be empty.
     """
 
-    attrlist = {'medium_index': medium_index, 'illum_wavelen': illum_wavelen, 'illum_polarization': to_vector(illum_polarization), 'normals': to_vector(normals)}
+    attrlist = {'medium_index': medium_index, 'illum_wavelen': illum_wavelen,
+                'illum_polarization': to_vector(illum_polarization),
+                'normals': to_vector(normals)}
     b = a.copy()
     b.attrs = updated(b.attrs, attrlist)
 
@@ -193,17 +209,20 @@ def update_metadata(a, medium_index=None, illum_wavelen=None, illum_polarization
 
     return b
 
+
 def copy_metadata(old, new, do_coords=True):
     def find_and_rename(oldkey, oldval):
         for newkey, newval in new.coords.items():
             if np.array_equal(oldval.values, newval.values):
                 return new.rename({newkey: oldkey})
-            raise ValueError("Coordinate {} does not appear to have a coresponding coordinate in {}".format(oldkey, new))
+            raise ValueError(
+                    "Coordinate {} does not appear to have a ".format(oldkey) +
+                    "corresponding coordinate in {}".format(new))
 
-    if hasattr(old, 'attrs') and hasattr(old, 'name') and hasattr(old, 'coords'):
-        if not hasattr(new,'coords'):
-            #new is a numpy array, not xarray
-            new=xr.DataArray(new, dims=['x', 'y'])
+    if all([hasattr(old, attr) for attr in ['attrs', 'name' 'coords']]):
+        if not hasattr(new, 'coords'):
+            # new is a numpy array, not xarray
+            new = xr.DataArray(new, dims=['x', 'y'])
         new.attrs = old.attrs
         new.name = old.name
 
@@ -214,6 +233,7 @@ def copy_metadata(old, new, do_coords=True):
                 if key not in new.coords:
                     new = find_and_rename(key, val)
     return new
+
 
 def to_vector(c):
     if c is None or c is False:
@@ -226,39 +246,48 @@ def to_vector(c):
 
     return xr.DataArray(c, coords={vector: ['x', 'y', 'z']}, dims=vector)
 
+
 def flat(a):
     if hasattr(a, 'flat') or hasattr(a, 'point'):
         return a
-    if len(a.dims)==3:
-        #want to ensure order is x, y, z
-        return a.stack(flat=('x','y','z'))
+    if len(a.dims) == 3:
+        # want to ensure order is x, y, z
+        return a.stack(flat=('x', 'y', 'z'))
     else:
         return a.stack(flat=a.dims)
+
 
 def from_flat(a):
     if hasattr(a, 'flat'):
         return a.unstack('flat')
     return a
 
-def sphere_coords(a, origin=(0,0,0), wavevec=1):
-    if hasattr(a,'theta') and hasattr(a, 'phi'):
-        out = {'theta': a.theta.values, 'phi': a.phi.values, 'point':a.point.values}
+
+def sphere_coords(a, origin=(0, 0, 0), wavevec=1):
+    if hasattr(a, 'theta') and hasattr(a, 'phi'):
+        out = {'theta': a.theta.values, 'phi': a.phi.values,
+               'point': a.point.values}
         if hasattr(a, 'r') and any(np.isfinite(a.r)):
             out['r'] = a.r.values * wavevec
         return out
 
     else:
         if origin is None:
-            raise ValueError('Cannot convert detector to spherical coordinates without an origin')
+            raise ValueError('Cannot convert detector to spherical ' +
+                             'coordinates without an origin')
         f = flat(a)
         dimstr = primdim(f)
         # we define positive z opposite light propagation, so we have to invert
-        x, y, z = f.x.values - origin[0], f.y.values - origin[1], origin[2] - f.z.values
-        out = to_spherical(x,y,z)
-        return updated(out, {'r':out['r'] * wavevec, dimstr:f[dimstr]})
+        x = f.x.values - origin[0]
+        y = f.y.values - origin[1]
+        z = origin[2] - f.z.values
+        out = to_spherical(x, y, z)
+        return updated(out, {'r': out['r'] * wavevec, dimstr: f[dimstr]})
+
 
 def get_values(a):
     return getattr(a, 'values', a)
+
 
 def primdim(a):
     if isinstance(a, xr.DataArray):
@@ -269,24 +298,29 @@ def primdim(a):
         return 'point'
     raise ValueError('Array is not in the form of a 1D list of coordinates')
 
-def default_norms(coords,n):
-    if n is 'auto':    
+
+def default_norms(coords, n):
+    if n is 'auto':
         if 'x' in coords:
-            n = (0,0,1)
+            n = (0, 0, 1)
         elif 'theta' in coords:
             n = to_cartesian(1, coords['theta'][1], coords['phi'][1])
-            n = -np.vstack((n['x'],n['y'],n['z']))
-            n = xr.DataArray(n, dims=[vector,'point'], coords={vector: ['x', 'y', 'z']})
+            n = -np.vstack((n['x'], n['y'], n['z']))
+            n = xr.DataArray(n, dims=[vector, 'point'],
+                             coords={vector: ['x', 'y', 'z']})
         else:
             raise CoordSysError()
     return to_vector(n)
 
+
 def get_spacing(im):
     xspacing = np.diff(im.x)
     yspacing = np.diff(im.y)
-    if not np.allclose(xspacing[0], xspacing) and np.allclose(yspacing[0], yspacing):
-        raise ValueError("array has nonuniform spacing, can't determine a single spacing")
+    if not all([np.allclose(x[0], x) for x in [xspacing, yspacing]]):
+        raise ValueError("array has nonuniform spacing, can't determine a" +
+                         " single spacing")
     return np.array((xspacing[0], yspacing[0]))
+
 
 def get_extents(im):
     def get_extent(d):
@@ -304,4 +338,6 @@ def make_coords(shape, spacing, z=0):
         shape = np.repeat(shape, 2)
     if np.isscalar(spacing):
         spacing = np.repeat(spacing, 2)
-    return {'z':np.array([z]), 'x': np.arange(shape[1])*spacing[0], 'y': np.arange(shape[2])*spacing[1]}
+    return {'z': np.array([z]), 'x': np.arange(shape[1])*spacing[0],
+            'y': np.arange(shape[2])*spacing[1]}
+
